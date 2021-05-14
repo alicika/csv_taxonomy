@@ -1,10 +1,10 @@
 mod utils;
 
-use wasm_bindgen::prelude::*;
-use ndarray::{Array2};
-use std::str::FromStr;
+use ndarray::Array2;
 use std::iter::Iterator;
+use std::str::FromStr;
 use tera::{Context, Tera};
+use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -48,7 +48,14 @@ impl Graph {
         self.points.push(Point { x, y });
     }
 
-    pub fn draw_svg(&self, width: usize, height: usize, padding: usize, path: Vec<Point>, centers: Vec<(f64, f64)>) -> String {
+    pub fn draw_svg(
+        &self,
+        width: usize,
+        height: usize,
+        padding: usize,
+        path: Vec<Point>,
+        centers: Vec<(f64, f64)>,
+    ) -> String {
         let mut context = Context::new();
         let mut p: Vec<(f64, f64)> = Vec::new();
 
@@ -74,7 +81,14 @@ impl Graph {
 }
 
 #[wasm_bindgen]
-pub fn fit_draw (csv_content: &[u8], num_clusters: usize, width: usize, height: usize, padding: usize, title: &str) -> String {
+pub fn fit_draw(
+    csv_content: &[u8],
+    num_clusters: usize,
+    width: usize,
+    height: usize,
+    padding: usize,
+    title: &str,
+) -> String {
     let data: Vec<f64> = read_data(csv_content);
     let mut xs: Vec<f64> = Vec::new();
     let mut ys: Vec<f64> = Vec::new();
@@ -82,17 +96,16 @@ pub fn fit_draw (csv_content: &[u8], num_clusters: usize, width: usize, height: 
     let mut centers: Vec<(f64, f64)> = Vec::new();
 
     let center_arr: Vec<f64> = fit(csv_content, num_clusters);
-    // println!("{:?}", center_arr);
 
     for i in 0..center_arr.len() {
         if (i % 2) == 1 {
-            centers.push((center_arr[i-1], center_arr[i]));
+            centers.push((center_arr[i - 1], center_arr[i]));
         }
     }
 
     for i in 0..data.len() {
         if (i % 2) == 1 {
-            tuples.push((data[i-1], data[i]));
+            tuples.push((data[i - 1], data[i]));
         }
     }
 
@@ -105,24 +118,43 @@ pub fn fit_draw (csv_content: &[u8], num_clusters: usize, width: usize, height: 
 
     let width = width - padding * 2;
     let height = height - padding * 2;
-    // let min_x = graph.points.get(0).map(|val| val.x).unwrap_or(0.0);
-    let x_max = graph.points.iter().map(|point| point.x).fold(0. / 0., f64::max);
-    let x_min = graph.points.iter().map(|point| point.x).fold(0. / 0., f64::min);
-    let y_max = graph.points.iter().map(|point| point.y).fold(0. / 0., f64::max);
-    let y_min = graph.points.iter().map(|point| point.y).fold(0. / 0., f64::min);
+    let x_max = graph
+        .points
+        .iter()
+        .map(|point| point.x)
+        .fold(0. / 0., f64::max);
+    let x_min = graph
+        .points
+        .iter()
+        .map(|point| point.x)
+        .fold(0. / 0., f64::min);
+    let y_max = graph
+        .points
+        .iter()
+        .map(|point| point.y)
+        .fold(0. / 0., f64::max);
+    let y_min = graph
+        .points
+        .iter()
+        .map(|point| point.y)
+        .fold(0. / 0., f64::min);
 
-    graph.x_min = (x_min-1.0).round();
-    graph.y_min = (y_min-1.0).round();
+    graph.x_min = (x_min - 1.0).round();
+    graph.y_min = (y_min - 1.0).round();
 
-    graph.x_range = (x_max+1.0).round() - graph.x_min;
-    graph.y_range = (y_max+1.0).round() - graph.y_min;
-
-    // let min_y = graph.points.iter().map(|val| val.y).fold(0. / 0., f64::min);
+    graph.x_range = (x_max + 1.0).round() - graph.x_min;
+    graph.y_range = (y_max + 1.0).round() - graph.y_min;
 
     let centers = centers
         .iter()
-        .map(|val| ((val.0-graph.x_min) / graph.x_range * width as f64 + padding as f64,
-                    (val.1-graph.y_min) / graph.y_range * (height as f64 * -1.0) + (padding + height) as f64)).collect();
+        .map(|val| {
+            (
+                (val.0 - graph.x_min) / graph.x_range * width as f64 + padding as f64,
+                (val.1 - graph.y_min) / graph.y_range * (height as f64 * -1.0)
+                    + (padding + height) as f64,
+            )
+        })
+        .collect();
 
     let path = graph
         .points
@@ -130,33 +162,35 @@ pub fn fit_draw (csv_content: &[u8], num_clusters: usize, width: usize, height: 
         .map(|val| Point {
             //x: (val.x / graph.max_x * width as f64) + padding as f64,
             //y: (val.y / graph.max_y * (height as f64 * -1.0)) + (padding + height) as f64,
-            x: ((val.x-graph.x_min) / graph.x_range * width as f64) + padding as f64,
-            y: ((val.y-graph.y_min) / graph.y_range * (height as f64 * -1.0)) + (padding + height) as f64,
-        }).collect();
+            x: ((val.x - graph.x_min) / graph.x_range * width as f64) + padding as f64,
+            y: ((val.y - graph.y_min) / graph.y_range * (height as f64 * -1.0))
+                + (padding + height) as f64,
+        })
+        .collect();
     let out = graph.draw_svg(width, height, padding, path, centers);
-    return out;
+    out
 }
 
-pub fn generate_graph(xs: Vec<f64>, ys: Vec<f64>, title : &str) -> Graph {
+pub fn generate_graph(xs: Vec<f64>, ys: Vec<f64>, title: &str) -> Graph {
     let mut graph = Graph::new(title.into(), "#8ff0a4".into());
     graph.size = xs.len();
     for i in 0..graph.size {
         graph.add_point(xs[i], ys[i]);
     }
-    return graph;
+    graph
 }
 
-pub fn fit (csv_content: &[u8], num_clusters: usize) -> Vec<f64> {
+pub fn fit(csv_content: &[u8], num_clusters: usize) -> Vec<f64> {
     let data: Vec<f64> = read_data(csv_content);
     let arr = Array2::from_shape_vec((data.len() / 2, 2), data).unwrap();
     let (means, _clusters) = rkm::kmeans_lloyd(&arr.view(), num_clusters as usize);
 
-    let mut serialized_vec : Vec<f64> = Vec::new();
+    let mut serialized_vec: Vec<f64> = Vec::new();
     for row in means.genrows() {
         serialized_vec.push(row[0]);
         serialized_vec.push(row[1]);
     }
-    return serialized_vec;
+    serialized_vec
 }
 
 fn read_data(csv_content: &[u8]) -> Vec<f64> {
