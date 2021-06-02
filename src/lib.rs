@@ -202,5 +202,5 @@ fn read_data(csv_content: &[u8]) -> Vec<f64> {
             data.push(value.unwrap());
         }
     }
-    data
+    return data;
 }
