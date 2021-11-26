@@ -19,6 +19,14 @@
 
 ## About
 
+This is a webapp that reads csv data and reflects it into a well-coloured graph with the use of k-means method.
+Currently, the main feature is under construction because it does not allow loading wasm modules.
+You can start this app with :
+```
+cd www
+npm start
+```
+
 [**📚 Read this template tutorial! 📚**][template-docs]
 
 This template is designed for compiling Rust libraries into WebAssembly and
