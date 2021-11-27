@@ -19,8 +19,8 @@
 
 ## About
 
-This is a webapp that reads csv data and reflects it into a well-coloured graph with the use of k-means method.
-Currently, the main feature is under construction because it does not allow loading wasm modules.
+This is a webapp that reads csv data and reflects it into a well-coloured graph with the use of k-means method.<br>
+Currently, the main feature is under construction because it does not allow loading wasm modules.<br>
 You can start this app with :
 ```
 cd www
